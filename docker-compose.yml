@@ -1,17 +1,27 @@
-version: '3'
+version: '3.8'
 
 services:
-
-  postgres:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: some_user
-      POSTGRES_PASSWORD: some_pass
-    ports:
-      - "0.0.0.0:5432:5432"
+  web:
+    build: ./project
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./data/postgres/:/var/lib/postgresql/data
+      - ./project/:/usr/src/project/
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:15.1-alpine3.17
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5455:5432"
+    environment:
+      - POSTGRES_USER=my_proj
+      - POSTGRES_PASSWORD=my_proj
+      - POSTGRES_DB=my_proj
 
   minio:
     image: minio/minio
@@ -25,3 +35,7 @@ services:
     volumes:
       - ./data/minio/data:/data
       - ./data/minio/config:/root/.minio
+
+volumes:
+  postgres_data:
+  project:
